@@ -1,12 +1,12 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: "Creates infrastructure for Thumnbail Creator"
 
-Parameters: 
+Parameters:
   RawBucketName:
     Type: String
     Default: rawimages
     Description: Enter the name of the Raw Images Bucket
-  
+
   ThumbnailBucketName:
     Type: String
     Default: thumbnailimages
@@ -18,6 +18,28 @@ Parameters:
     Description: Enter the name of the API Gateway
 
 Resources:
+  AppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              AWS: "*"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: "tc-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "s3:*"
+                Resource: "*"
+      RoleName: tc-role
+
   RawBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -27,17 +49,6 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref ThumbnailBucketName
-
-  ApiGateway:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      PathPart: saveImage
-      RestApiId: !Ref ApiGatewayRest
-      ParentId: !GetAtt
-        - ApiGatewayRest
-        - RootResourceId
-    DependsOn:
-      - ApiGatewayRest
 
   ApiGatewayRest:
     Type: AWS::ApiGateway::RestApi
@@ -51,16 +62,43 @@ Resources:
     DependsOn:
       - RawBucket
 
-  S3SaveMethod:
-    Type: AWS::ApiGateway::Method
+  BucketApiResource:
+    Type: AWS::ApiGateway::Resource
     Properties:
-      HttpMethod: POST
-      OperationName: SaveImage
-      ResourceId: !Ref ApiGateway
+      PathPart: !Ref RawBucketName
       RestApiId: !Ref ApiGatewayRest
-      AuthorizationType: NONE
-      Integration:
-        Type: MOCK
+      ParentId: !GetAtt
+        - ApiGatewayRest
+        - RootResourceId
     DependsOn:
       - ApiGatewayRest
-      - ApiGateway
+
+  BucketItemApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      PathPart: "{item}"
+      RestApiId: !Ref ApiGatewayRest
+      ParentId: !Ref BucketApiResource
+    DependsOn:
+      - ApiGatewayRest
+      - BucketApiResource
+
+  BucketItemApiMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGatewayRest
+      ResourceId: !Ref BucketItemApiResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt
+          - AppRole
+          - Arn
+        IntegrationHttpMethod: PUT
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:aws:apigateway:us-east-1:s3:path/"
+              - !Ref RawBucketName
+              - "{item}"
