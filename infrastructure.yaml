@@ -54,6 +54,7 @@ Resources:
     Type: AWS::ApiGateway::RestApi
     Properties:
       Name: !Ref ApiGatewayName
+      Description: Api Gateway to enable reading and writing of image data
       BinaryMediaTypes:
         - image/png
       EndpointConfiguration:
@@ -90,15 +91,51 @@ Resources:
       ResourceId: !Ref BucketItemApiResource
       HttpMethod: POST
       AuthorizationType: NONE
+      OperationName: SaveImage
+      MethodResponses:
+        - StatusCode: 201
+      RequestParameters:
+        method.request.header.Content-Disposition: false
+        method.request.header.Content-Type: false
+        method.request.path.item: true
       Integration:
         Type: AWS
         Credentials: !GetAtt
           - AppRole
           - Arn
         IntegrationHttpMethod: PUT
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestParameters:
+          integration.request.header.Content-Disposition: method.request.header.Content-Disposition
+          integration.request.header.Content-Type: method.request.header.Content-Type
+          integration.request.path.key: method.request.path.item
         Uri:
           Fn::Join:
-            - ""
-            - - "arn:aws:apigateway:us-east-1:s3:path/"
+            - "/"
+            - - "arn:aws:apigateway:us-east-1:s3:path"
               - !Ref RawBucketName
-              - "{item}"
+              - "{key}"
+        IntegrationResponses:
+          - StatusCode: 201
+    DependsOn:
+      - AppRole
+      - BucketItemApiResource
+      - ApiGatewayRest
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref ApiGatewayRest
+      StageName: DefaultDeployment
+    DependsOn:
+      - ApiGatewayRest
+
+  DefaultApiGatewayStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref ApiGatewayRest
+      TracingEnabled: true
+      DeploymentId: !Ref ApiGatewayDeployment
+    DependsOn:
+      - ApiGatewayRest
+      - ApiGatewayDeployment
