@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Creates infrastructure for Thumnbail Creator"
+
+Parameters: 
+  RawBucketName:
+    Type: String
+    Default: rawimages
+    Description: Enter the name of the Raw Images Bucket
+  
+  ThumbnailBucketName:
+    Type: String
+    Default: thumbnailimages
+    Description: Enter the name of the Thumbnail Images Bucket
+
+  ApiGatewayName:
+    Type: String
+    Default: tcapigateway
+    Description: Enter the name of the API Gateway
+
+Resources:
+  RawBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref RawBucketName
+
+  ThumbnailBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref ThumbnailBucketName
+
+  ApiGateway:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      PathPart: saveImage
+      RestApiId: !Ref ApiGatewayRest
+      ParentId: !GetAtt
+        - ApiGatewayRest
+        - RootResourceId
+    DependsOn:
+      - ApiGatewayRest
+
+  ApiGatewayRest:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Ref ApiGatewayName
+      BinaryMediaTypes:
+        - image/png
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+    DependsOn:
+      - RawBucket
+
+  S3SaveMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      OperationName: SaveImage
+      ResourceId: !Ref ApiGateway
+      RestApiId: !Ref ApiGatewayRest
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+    DependsOn:
+      - ApiGatewayRest
+      - ApiGateway
