@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
 Description: "Creates infrastructure for Thumnbail Creator"
 
 Parameters:
@@ -139,3 +140,19 @@ Resources:
     DependsOn:
       - ApiGatewayRest
       - ApiGatewayDeployment
+
+  CreateThumbnailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CreateThumbnail
+      CodeUri: ./CreateThumbnailFunction/src/CreateThumbnailFunction/bin/Debug/netcoreapp2.1/publish
+      Handler: CreateThumbnailFunction::CreateThumbnailFunctions.CreateThumbnailFunction::Execute
+      Runtime: dotnetcore2.1
+      Events:
+        ResizeImageEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref RawBucket
+            Events: s3.ObjectCreated:*
+    DependsOn:
+      - RawBucket
