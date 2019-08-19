@@ -20,3 +20,4 @@ phases:
 artifacts:
   files:
     - $CODEBUILD_SRC_DIR/createthumbnail_output.zip
+    - $CODEBUILD_SRC_DIR/infrastructure/infra.yaml
