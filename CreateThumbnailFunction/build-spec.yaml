@@ -11,12 +11,12 @@ phases:
 
   build:
     commands:
-      - dotnet publish CreateThumbnailFunction/src/CreateThumbnailFunction/CreateThumbnailFunction.csproj -c Debug -o publish
+      - dotnet publish CreateThumbnailFunction/src/CreateThumbnailFunction/CreateThumbnailFunction.csproj -c Debug -o $CODEBUILD_SRC_DIR/publish
 
   post_build:
     commands:
-      - zip -j createthumbnail_output.zip publish/*
+      - zip -j $CODEBUILD_SRC_DIR/createthumbnail_output.zip $CODEBUILD_SRC_DIR/publish/*
 
 artifacts:
   files:
-    - createthumbnail_output.zip
+    - $CODEBUILD_SRC_DIR/createthumbnail_output.zip
