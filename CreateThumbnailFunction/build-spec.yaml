@@ -3,7 +3,7 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - dotnet restore src/CreateThumbnail/CreateThumbnailFunction.csproj
+      - dotnet restore CreateThumbnailFunction/src/CreateThumbnailFunction/CreateThumbnailFunction.csproj
 
   build:
     commands:
