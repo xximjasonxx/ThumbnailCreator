@@ -149,8 +149,8 @@ Resources:
         Fn::Join:
           - ""
           - - "s3://thumbnailcreator-artifacts/"
+            - !Ref RawBucketName
             - "publish-220"
-            - !Ref ThumbnailCreator
             - ".zip"
       Handler: CreateThumbnailFunction::CreateThumbnailFunctions.CreateThumbnailFunction::Execute
       Runtime: dotnetcore2.1
