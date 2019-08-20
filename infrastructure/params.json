@@ -1,0 +1,14 @@
+[
+  {
+    "ParameterKey": "RawBucketName",
+    "ParameterValue": "rawimagestc1983"
+  },
+  {
+    "ParameterKey": "ThumbnailBucketName",
+    "ParameterValue": "thumbimagestc1983"
+  },
+  {
+    "ParameterKey": "ApiGatewayName",
+    "ParameterValue": "tcapi1983"
+  }
+]

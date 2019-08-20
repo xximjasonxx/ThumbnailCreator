@@ -145,7 +145,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: CreateThumbnail
-      CodeUri: ./CreateThumbnailFunction/src/CreateThumbnailFunction/bin/Debug/netcoreapp2.1/publish
+      CodeUri:
+        Fn::Join:
+          - ""
+          - - "s3://thumbnailcreator-artifacts/"
+            - "publish-220"
+            - !Ref ThumbnailCreator
+            - ".zip"
       Handler: CreateThumbnailFunction::CreateThumbnailFunctions.CreateThumbnailFunction::Execute
       Runtime: dotnetcore2.1
       Events:
