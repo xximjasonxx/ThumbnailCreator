@@ -4,7 +4,7 @@
 # https://aka.ms/yaml
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: "ubuntu-latest"
 
 steps:
   - task: DotNetCoreCLI@2
@@ -14,9 +14,9 @@ steps:
       command: restore
 
   - task: DotNetCoreCLI@2
-    displayName: Publish Source
+    displayName: Build Source
     inputs:
-      command: publish
+      command: build
       projects: CreateThumbnailFunction/src/CreateThumbnailFunction/CreateThumbnailFunction.csproj
       arguments: -c Debug -o $(Build.SourcesDirectory)/publish
 
