@@ -1,5 +1,4 @@
 AWSTemplateFormatVersion: 2010-09-09
-Transform: AWS::Serverless-2016-10-31
 Description: "Creates infrastructure for Thumnbail Creator"
 
 Parameters:
@@ -39,12 +38,36 @@ Resources:
               - Effect: "Allow"
                 Action: "s3:*"
                 Resource: "*"
+              - Effect: "Allow"
+                Action: "lambda:*"
+                Resource: "*"
       RoleName: tc-role
+
+  CreateThumbnailFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: thumbnailcreator-artifacts
+        S3Key: publish-221.zip
+      Handler: CreateThumbnailFunction::CreateThumbnailFunctions.CreateThumbnailFunction::Execute
+      Runtime: dotnetcore2.1
+      Role: !GetAtt [AppRole, Arn]
+
+  CreateThumbnailFunctionS3InvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt [CreateThumbnailFunction, Arn]
+      Action: "lambda:InvokeFunction"
+      Principal: "s3.amazonaws.com"
 
   RawBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref RawBucketName
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Function: !GetAtt [CreateThumbnailFunction, Arn]
+            Event: "s3:ObjectCreated:*"
 
   ThumbnailBucket:
     Type: AWS::S3::Bucket
@@ -61,8 +84,6 @@ Resources:
       EndpointConfiguration:
         Types:
           - REGIONAL
-    DependsOn:
-      - RawBucket
 
   BucketApiResource:
     Type: AWS::ApiGateway::Resource
@@ -81,9 +102,6 @@ Resources:
       PathPart: "{item}"
       RestApiId: !Ref ApiGatewayRest
       ParentId: !Ref BucketApiResource
-    DependsOn:
-      - ApiGatewayRest
-      - BucketApiResource
 
   BucketItemApiMethod:
     Type: AWS::ApiGateway::Method
@@ -118,10 +136,6 @@ Resources:
               - "{key}"
         IntegrationResponses:
           - StatusCode: 201
-    DependsOn:
-      - AppRole
-      - BucketItemApiResource
-      - ApiGatewayRest
 
   ApiGatewayDeployment:
     Type: AWS::ApiGateway::Deployment
@@ -130,6 +144,7 @@ Resources:
       StageName: DefaultDeployment
     DependsOn:
       - ApiGatewayRest
+      - BucketItemApiMethod
 
   DefaultApiGatewayStage:
     Type: AWS::ApiGateway::Stage
@@ -137,28 +152,3 @@ Resources:
       RestApiId: !Ref ApiGatewayRest
       TracingEnabled: true
       DeploymentId: !Ref ApiGatewayDeployment
-    DependsOn:
-      - ApiGatewayRest
-      - ApiGatewayDeployment
-
-  CreateThumbnailFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: CreateThumbnail
-      CodeUri:
-        Fn::Join:
-          - ""
-          - - "s3://thumbnailcreator-artifacts/"
-            - !Ref RawBucketName
-            - "publish-220"
-            - ".zip"
-      Handler: CreateThumbnailFunction::CreateThumbnailFunctions.CreateThumbnailFunction::Execute
-      Runtime: dotnetcore2.1
-      Events:
-        ResizeImageEvent:
-          Type: S3
-          Properties:
-            Bucket: !Ref RawBucket
-            Events: s3.ObjectCreated:*
-    DependsOn:
-      - RawBucket
