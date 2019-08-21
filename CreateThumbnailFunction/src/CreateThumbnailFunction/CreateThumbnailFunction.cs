@@ -25,6 +25,7 @@ namespace CreateThumbnailFunctions
         public async Task<string> Execute(S3Event evnt, ILambdaContext context)
         {
             var s3Event = evnt.Records?[0].S3;
+            context.Logger.Log("Invoking Function");
             if (s3Event == null)
             {
                 return "No Event";
