@@ -41,6 +41,15 @@ Resources:
               - Effect: "Allow"
                 Action: "lambda:*"
                 Resource: "*"
+              - Effect: "Allow"
+                Action: "xray:*"
+                Resource: "*"
+              - Effect: "Allow"
+                Action: "logs:*"
+                Resource: "*"
+              - Effect: "Allow"
+                Action: "cloudwatch:*"
+                Resource: "*"
       RoleName: tc-role
 
   CreateThumbnailFunction:
@@ -48,10 +57,14 @@ Resources:
     Properties:
       Code:
         S3Bucket: thumbnailcreator-artifacts
-        S3Key: publish-221.zip
+        S3Key: publish-222.zip
       Handler: CreateThumbnailFunction::CreateThumbnailFunctions.CreateThumbnailFunction::Execute
       Runtime: dotnetcore2.1
       Role: !GetAtt [AppRole, Arn]
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - AppRole
 
   CreateThumbnailFunctionS3InvokePermission:
     Type: AWS::Lambda::Permission
