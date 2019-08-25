@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
@@ -20,6 +21,7 @@ namespace Functions
         public async Task<string> ExecuteAsync(S3Event evnt, ILambdaContext context)
         {
             var s3Event = evnt.Records?[0].S3;
+            Console.WriteLine("Function Invoke");
             context.Logger.Log("Invoking Function");
             if (s3Event == null)
             {
