@@ -31,6 +31,8 @@ Resources:
           - Effect: "Allow"
             Principal:
               AWS: "*"
+              Service:
+                - lambda.amazonaws.com
             Action:
               - "sts:AssumeRole"
       Path: "/"
@@ -76,6 +78,7 @@ Resources:
       FunctionName: !GetAtt [CreateThumbnailFunction, Arn]
       Action: "lambda:InvokeFunction"
       Principal: "s3.amazonaws.com"
+      SourceArn: !Sub "arn:aws:s3:::${RawBucketName}"
 
   RawBucket:
     Type: AWS::S3::Bucket
