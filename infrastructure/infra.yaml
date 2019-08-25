@@ -57,7 +57,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: thumbnailcreator-artifacts
-        S3Key: publish-230.zip
+        S3Key: publish-231.zip
       Handler: CreateThumbnailFunction::Functions.CreateThumbnailFunction::ExecuteAsync
       Runtime: dotnetcore2.1
       Role: !GetAtt [AppRole, Arn]
