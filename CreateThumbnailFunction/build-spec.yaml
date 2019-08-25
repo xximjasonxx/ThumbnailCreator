@@ -16,7 +16,7 @@ steps:
   - task: DotNetCoreCLI@2
     displayName: Publish Source
     inputs:
-      command: build
+      command: publish
       projects: CreateThumbnailFunction/src/CreateThumbnailFunction/CreateThumbnailFunction.csproj
       arguments: -c Debug -o $(Build.SourcesDirectory)/publish
       zipAfterPublish: false
