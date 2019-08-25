@@ -18,7 +18,7 @@ namespace Functions
         /// <param name="evnt"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<string> ExecuteAsync(S3Event evnt, ILambdaContext context)
+        public string ExecuteAsync(S3Event evnt, ILambdaContext context)
         {
             //var s3Event = evnt.Records?[0].S3;
             Console.WriteLine("Function Invoke");
