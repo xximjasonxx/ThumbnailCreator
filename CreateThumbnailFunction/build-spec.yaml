@@ -19,6 +19,7 @@ steps:
       command: publish
       projects: CreateThumbnailFunction/src/CreateThumbnailFunction/CreateThumbnailFunction.csproj
       arguments: -c Debug -o $(Build.SourcesDirectory)/publish
+      publishWebProjects: false
       zipAfterPublish: false
 
   - task: ArchiveFiles@2
