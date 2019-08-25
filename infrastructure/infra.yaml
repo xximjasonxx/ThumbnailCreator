@@ -37,22 +37,38 @@ Resources:
               - "sts:AssumeRole"
       Path: "/"
       Policies:
-        - PolicyName: "tc-policy"
+        - PolicyName: "tc-s3-policy"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
                 Action: "s3:*"
                 Resource: "*"
+        - PolicyName: "tc-lambda-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
               - Effect: "Allow"
                 Action: "lambda:*"
                 Resource: "*"
+        - PolicyName: "tc-xray-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
               - Effect: "Allow"
                 Action: "xray:*"
                 Resource: "*"
+        - PolicyName: "tc-logs-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
               - Effect: "Allow"
                 Action: "logs:*"
-                Resource: "*"
+                Resource: "arn:aws:logs:*:*:*"
+        - PolicyName: "tc-cloudwatch-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
               - Effect: "Allow"
                 Action: "cloudwatch:*"
                 Resource: "*"
