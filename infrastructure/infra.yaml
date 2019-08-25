@@ -17,6 +17,10 @@ Parameters:
     Default: tcapigateway
     Description: Enter the name of the API Gateway
 
+  CreateThumbnailLambdaVersionFile:
+    Type: String
+    Description: The file containing the compiled contents for the Lambda
+
 Resources:
   AppRole:
     Type: AWS::IAM::Role
