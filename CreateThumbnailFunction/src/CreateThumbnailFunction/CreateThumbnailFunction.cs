@@ -6,7 +6,7 @@ using Amazon.Lambda.S3Events;
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
-namespace CreateThumbnailFunctions
+namespace Functions
 {
     public class CreateThumbnailFunction
     {
@@ -17,7 +17,7 @@ namespace CreateThumbnailFunctions
         /// <param name="evnt"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<string> Execute(S3Event evnt, ILambdaContext context)
+        public async Task<string> ExecuteAsync(S3Event evnt, ILambdaContext context)
         {
             var s3Event = evnt.Records?[0].S3;
             context.Logger.Log("Invoking Function");
