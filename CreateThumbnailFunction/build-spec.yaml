@@ -18,7 +18,7 @@ steps:
     inputs:
       command: publish
       projects: CreateThumbnailFunction/src/CreateThumbnailFunction/CreateThumbnailFunction.csproj
-      arguments: -c Debug -o $(Build.SourcesDirectory)/publish
+      arguments: -c Debug -o $(Build.ArtifactStagingDirectory)/publish
       publishWebProjects: false
       zipAfterPublish: false
 
@@ -27,7 +27,7 @@ steps:
     inputs:
       includeRootFolder: false
       archiveType: zip
-      rootFolderOrFile: $(Build.SourcesDirectory)/publish
+      rootFolderOrFile: $(Build.ArtifactStagingDirectory)/publish/CreateThumbnailFunction
       archiveFile: $(Build.ArtifactStagingDirectory)/publish-$(Build.BuildId).zip
 
   - task: CopyFiles@2
