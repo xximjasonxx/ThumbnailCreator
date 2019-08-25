@@ -18,12 +18,10 @@ namespace Functions
         /// <param name="evnt"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public string ExecuteAsync(S3Event evnt, ILambdaContext context)
+        public async Task<string> ExecuteAsync(S3Event evnt, ILambdaContext context)
         {
-            //var s3Event = evnt.Records?[0].S3;
-            Console.WriteLine("Function Invoke");
+            var s3Event = evnt.Records?[0].S3;
             context.Logger.Log("Invoking Function");
-            LambdaLogger.Log("Lambda Invokation");
             /*if (s3Event == null)
             {
                 return "No Event";
