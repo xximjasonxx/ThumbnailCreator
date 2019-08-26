@@ -151,7 +151,7 @@ Resources:
         - StatusCode: 201
       RequestParameters:
         method.request.header.Content-Disposition: false
-        method.request.header.Content-Type: false
+        method.request.header.Content-Type: true
         method.request.path.item: true
       Integration:
         Type: AWS

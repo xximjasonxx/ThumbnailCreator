@@ -67,30 +67,28 @@ namespace Functions
             }
         }
 
-        Stream CreateThumbnailStream(Stream rawImageStream)
+        Stream CreateThumbnailStream(Stream rawImageStream, ILambdaContext lambdaContext)
         {
-            using (var streamReader = new StreamReader(rawImageStream))
+            lambdaContext.Logger.LogLine("loading image stream");
+            using (var image = SixLabors.ImageSharp.Image.Load(rawImageStream))
             {
-                var streamBuffer = new byte[rawImageStream.Length];
-                using (var memoryStream = new MemoryStream(streamBuffer))
+                var resizeOptions = new ResizeOptions
                 {
-                    var image = SixLabors.ImageSharp.Image.Load(memoryStream.ToArray());
-                    var resizeOptions = new ResizeOptions
+                    Size = new SixLabors.Primitives.Size
                     {
-                        Size = new SixLabors.Primitives.Size
-                        {
-                            Width = Convert.ToInt32(image.Width * 0.2m),
-                            Height = Convert.ToInt32(image.Height * 0.2m)
-                        },
-                        Mode = ResizeMode.Stretch
-                    };
+                        Width = Convert.ToInt32(image.Width * 0.2m),
+                        Height = Convert.ToInt32(image.Height * 0.2m)
+                    },
+                    Mode = ResizeMode.Stretch
+                };
 
-                    image.Mutate(x => x.Resize(resizeOptions));
-                    using (var outputStream = new MemoryStream())
-                    {
-                        image.Save(outputStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
-                        return outputStream;
-                    }
+                lambdaContext.Logger.LogLine("Resizing image");
+                image.Mutate(x => x.Resize(resizeOptions));
+                using (var outputStream = new MemoryStream())
+                {
+                    lambdaContext.Logger.LogLine("Saveing image and returning resized stream");
+                    image.Save(outputStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                    return outputStream;
                 }
             }
         }
