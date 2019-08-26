@@ -7,8 +7,6 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.S3Events;
 using Amazon.S3;
 using Amazon.S3.Model;
-using GrapeCity.Documents.Drawing;
-using GrapeCity.Documents.Imaging;
 using SixLabors.ImageSharp.Processing;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
