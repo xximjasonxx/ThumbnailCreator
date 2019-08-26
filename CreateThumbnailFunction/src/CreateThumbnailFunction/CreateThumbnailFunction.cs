@@ -35,7 +35,7 @@ namespace Functions
                     using (var imageStream = await GetS3Object(client, s3Event.Bucket.Name, s3Event.Object.Key, context))
                     {
                         context.Logger.LogLine("Got object - getting thumbnail stream");
-                        using (var thumbnailImageStream = CreateThumbnailStream(imageStream))
+                        using (var thumbnailImageStream = CreateThumbnailStream(imageStream, context))
                         {
                             context.Logger.LogLine("thumbnail stream created - saving to thumbnail bucket");
                             await PutThumbnailImage(client, s3Event.Object.Key, thumbnailImageStream);
