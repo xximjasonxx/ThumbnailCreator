@@ -7,6 +7,9 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.S3Events;
 using Amazon.S3;
 using Amazon.S3.Model;
+using GrapeCity.Documents.Drawing;
+using GrapeCity.Documents.Imaging;
+using SixLabors.ImageSharp.Processing;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -28,34 +31,18 @@ namespace Functions
             {
                 context.Logger.Log("Invoking Function");
 
-                var s3Event = evnt.Records?[0].S3;
-                var getRequest = new GetObjectRequest
-                {
-                    BucketName = s3Event.Bucket.Name,
-                    Key = s3Event.Object.Key
-                };
-
                 using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
                 {
-                    using (var getResponse = await client.GetObjectAsync(getRequest))
+                    var s3Event = evnt.Records?[0].S3;
+                    using (var imageStream = await GetS3Object(client, s3Event.Bucket.Name, s3Event.Object.Key))
                     {
-                        using (var rawImage = Image.FromStream(getResponse.ResponseStream))
+                        context.Logger.LogLine("Got object - getting thumbnail stream");
+                        using (var thumbnailImageStream = CreateThumbnailStream(imageStream))
                         {
-                            context.Logger.LogLine("Got image - creating thumbnail");
-                            var thumbnail = rawImage.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
-                            thumbnail.Save("thumbnail");
-                            context.Logger.LogLine("Save Image to file");
+                            context.Logger.LogLine("thumbnail stream created - saving to thumbnail bucket");
+                            await PutThumbnailImage(client, s3Event.Object.Key, thumbnailImageStream);
 
-                            // put the thumbnail
-                            var putRequest = new PutObjectRequest
-                            {
-                                BucketName = "thumbimagestc1983",
-                                Key = s3Event.Object.Key,
-                                FilePath = "thumbnail"
-                            };
-
-                            var putResponse = await client.PutObjectAsync(putRequest);
-                            context.Logger.LogLine("Write Complete");
+                            context.Logger.LogLine("operation complete");
                         }
                     }
                 }
@@ -65,6 +52,61 @@ namespace Functions
                 context.Logger.LogLine(ex.Message);
                 context.Logger.LogLine(ex.StackTrace);
             }
+        }
+
+        async Task<Stream> GetS3Object(AmazonS3Client client, string bucketName, string fileName)
+        {
+            var getRequest = new GetObjectRequest
+            {
+                BucketName = bucketName,
+                Key = fileName
+            };
+
+            using (var getResponse = await client.GetObjectAsync(getRequest))
+            {
+                return getResponse.ResponseStream;
+            }
+        }
+
+        Stream CreateThumbnailStream(Stream rawImageStream)
+        {
+            using (var streamReader = new StreamReader(rawImageStream))
+            {
+                var streamBuffer = new byte[rawImageStream.Length];
+                using (var memoryStream = new MemoryStream(streamBuffer))
+                {
+                    var image = SixLabors.ImageSharp.Image.Load(memoryStream.ToArray());
+                    var resizeOptions = new ResizeOptions
+                    {
+                        Size = new SixLabors.Primitives.Size
+                        {
+                            Width = Convert.ToInt32(image.Width * 0.2m),
+                            Height = Convert.ToInt32(image.Height * 0.2m)
+                        },
+                        Mode = ResizeMode.Stretch
+                    };
+
+                    image.Mutate(x => x.Resize(resizeOptions));
+                    using (var outputStream = new MemoryStream())
+                    {
+                        image.Save(outputStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                        return outputStream;
+                    }
+                }
+            }
+        }
+
+        async Task<bool> PutThumbnailImage(AmazonS3Client client, string keyName, Stream thumbnailImageStream)
+        {
+            var putRequest = new PutObjectRequest
+            {
+                BucketName = "thumbimagestc1983",
+                Key = keyName,
+                InputStream = thumbnailImageStream
+            };
+
+            await client.PutObjectAsync(putRequest);
+            return true;
         }
     }
 }
