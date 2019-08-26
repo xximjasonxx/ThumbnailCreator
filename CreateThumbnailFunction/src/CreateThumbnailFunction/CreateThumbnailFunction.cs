@@ -32,7 +32,7 @@ namespace Functions
                 using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
                 {
                     var s3Event = evnt.Records?[0].S3;
-                    using (var imageStream = await GetS3Object(client, s3Event.Bucket.Name, s3Event.Object.Key))
+                    using (var imageStream = await GetS3Object(client, s3Event.Bucket.Name, s3Event.Object.Key, context))
                     {
                         context.Logger.LogLine("Got object - getting thumbnail stream");
                         using (var thumbnailImageStream = CreateThumbnailStream(imageStream))
@@ -52,7 +52,7 @@ namespace Functions
             }
         }
 
-        async Task<Stream> GetS3Object(AmazonS3Client client, string bucketName, string fileName)
+        async Task<Stream> GetS3Object(AmazonS3Client client, string bucketName, string fileName, ILambdaContext context)
         {
             var getRequest = new GetObjectRequest
             {
@@ -62,6 +62,7 @@ namespace Functions
 
             using (var getResponse = await client.GetObjectAsync(getRequest))
             {
+                context.Logger.LogLine(getResponse.Headers.ContentType);
                 return getResponse.ResponseStream;
             }
         }
