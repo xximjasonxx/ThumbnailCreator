@@ -7,6 +7,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.S3Events;
 using Amazon.S3;
 using Amazon.S3.Model;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Processing;
 
@@ -69,28 +70,34 @@ namespace Functions
             }
         }
 
-        Stream CreateThumbnailStream(Stream rawImageStream, ILambdaContext lambdaContext)
+        async Task<Stream> CreateThumbnailStream(Stream rawImageStream, ILambdaContext lambdaContext)
         {
             lambdaContext.Logger.LogLine("loading image stream");
-            using (var image = SixLabors.ImageSharp.Image.Load(rawImageStream, out IImageFormat format))
+            using (var reader = new StreamReader(rawImageStream))
             {
-                var resizeOptions = new ResizeOptions
-                {
-                    Size = new SixLabors.Primitives.Size
-                    {
-                        Width = Convert.ToInt32(image.Width * 0.2m),
-                        Height = Convert.ToInt32(image.Height * 0.2m)
-                    },
-                    Mode = ResizeMode.Stretch
-                };
+                var inputBuffer = new byte[rawImageStream.Length];
+                await rawImageStream.ReadAsync(inputBuffer, 0, (int)rawImageStream.Length); //this will fail for larger images
 
-                lambdaContext.Logger.LogLine("Resizing image");
-                image.Mutate(x => x.Resize(resizeOptions));
-                using (var outputStream = new MemoryStream())
+                using (var image = Image.Load(inputBuffer))
                 {
-                    lambdaContext.Logger.LogLine("Saveing image and returning resized stream");
-                    image.Save(outputStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
-                    return outputStream;
+                    var resizeOptions = new ResizeOptions
+                    {
+                        Size = new SixLabors.Primitives.Size
+                        {
+                            Width = Convert.ToInt32(image.Width * 0.2m),
+                            Height = Convert.ToInt32(image.Height * 0.2m)
+                        },
+                        Mode = ResizeMode.Stretch
+                    };
+
+                    lambdaContext.Logger.LogLine("Resizing image");
+                    image.Mutate(x => x.Resize(resizeOptions));
+                    using (var outputStream = new MemoryStream())
+                    {
+                        lambdaContext.Logger.LogLine("Saveing image and returning resized stream");
+                        image.Save(outputStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder());   // this needs to be introspective
+                        return outputStream;
+                    }
                 }
             }
         }
