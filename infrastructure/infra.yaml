@@ -51,7 +51,7 @@ Resources:
       Role: !GetAtt AppRole.Arn
       TracingConfig:
         Mode: Active
-      Timeout: 15
+      Timeout: 300
 
   AppRole:
     Type: AWS::IAM::Role

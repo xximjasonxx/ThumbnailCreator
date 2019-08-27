@@ -7,6 +7,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.S3Events;
 using Amazon.S3;
 using Amazon.S3.Model;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Processing;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -35,6 +36,7 @@ namespace Functions
                     using (var imageStream = await GetS3Object(client, s3Event.Bucket.Name, s3Event.Object.Key, context))
                     {
                         context.Logger.LogLine("Got object - getting thumbnail stream");
+                        context.Logger.LogLine($"Length of stream: {imageStream.Length}");
                         using (var thumbnailImageStream = CreateThumbnailStream(imageStream, context))
                         {
                             context.Logger.LogLine("thumbnail stream created - saving to thumbnail bucket");
@@ -70,7 +72,7 @@ namespace Functions
         Stream CreateThumbnailStream(Stream rawImageStream, ILambdaContext lambdaContext)
         {
             lambdaContext.Logger.LogLine("loading image stream");
-            using (var image = SixLabors.ImageSharp.Image.Load(rawImageStream))
+            using (var image = SixLabors.ImageSharp.Image.Load(rawImageStream, out IImageFormat format))
             {
                 var resizeOptions = new ResizeOptions
                 {
