@@ -9,6 +9,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -78,7 +79,7 @@ namespace Functions
                 var inputBuffer = new byte[rawImageStream.Length];
                 await rawImageStream.ReadAsync(inputBuffer, 0, (int)rawImageStream.Length); //this will fail for larger images
 
-                using (var image = Image.Load(inputBuffer))
+                using (var image = Image.Load(inputBuffer, new PngDecoder()))
                 {
                     var resizeOptions = new ResizeOptions
                     {
