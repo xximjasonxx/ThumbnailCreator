@@ -1,5 +1,4 @@
 using System;
-using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using Amazon;
@@ -7,9 +6,9 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.S3Events;
 using Amazon.S3;
 using Amazon.S3.Model;
+using CreateThumbnailFunction.Extensions;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -30,90 +29,82 @@ namespace Functions
         {
             try
             {
-                context.Logger.Log("Invoking Function");
-
-                using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
+                var s3Event = evnt.Records?[0].S3;
+                var getResponse = await GetS3Object(s3Event.Bucket.Name, s3Event.Object.Key);
+                using (var responseStream = getResponse.ResponseStream)
                 {
-                    var s3Event = evnt.Records?[0].S3;
-                    using (var imageStream = await GetS3Object(client, s3Event.Bucket.Name, s3Event.Object.Key, context))
+                    using (var resizedStream = GetResizedStream(responseStream, 0.2m, getResponse.Headers.ContentType))
                     {
-                        context.Logger.LogLine("Got object - getting thumbnail stream");
-                        context.Logger.LogLine($"Length of stream: {imageStream.Length}");
-                        using (var thumbnailImageStream = await CreateThumbnailStream(imageStream, context))
-                        {
-                            context.Logger.LogLine("thumbnail stream created - saving to thumbnail bucket");
-                            await PutThumbnailImage(client, s3Event.Object.Key, thumbnailImageStream);
-
-                            context.Logger.LogLine("operation complete");
-                        }
+                        resizedStream.Seek(0, SeekOrigin.Begin);
+                        await WriteS3Object(
+                            System.Environment.GetEnvironmentVariable("ThumbnailBucketName", EnvironmentVariableTarget.Process),
+                            $"thumb_{s3Event.Object.Key}",
+                            resizedStream);
                     }
                 }
+
+                context.Logger.LogLine("Operation Complete");
             }
             catch (Exception ex)
             {
                 context.Logger.LogLine(ex.Message);
-                context.Logger.LogLine(ex.StackTrace);
             }
         }
 
-        async Task<Stream> GetS3Object(AmazonS3Client client, string bucketName, string fileName, ILambdaContext context)
+        async Task<GetObjectResponse> GetS3Object(string bucketName, string keyName)
         {
-            var getRequest = new GetObjectRequest
+            using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
             {
-                BucketName = bucketName,
-                Key = fileName
-            };
-
-            using (var getResponse = await client.GetObjectAsync(getRequest))
-            {
-                context.Logger.LogLine(getResponse.Headers.ContentType);
-                return getResponse.ResponseStream;
-            }
-        }
-
-        async Task<Stream> CreateThumbnailStream(Stream rawImageStream, ILambdaContext lambdaContext)
-        {
-            lambdaContext.Logger.LogLine("loading image stream");
-            using (var reader = new StreamReader(rawImageStream))
-            {
-                var inputBuffer = new byte[rawImageStream.Length];
-                await rawImageStream.ReadAsync(inputBuffer, 0, (int)rawImageStream.Length); //this will fail for larger images
-
-                using (var image = Image.Load(inputBuffer, new PngDecoder()))
+                var request = new GetObjectRequest
                 {
-                    var resizeOptions = new ResizeOptions
-                    {
-                        Size = new SixLabors.Primitives.Size
-                        {
-                            Width = Convert.ToInt32(image.Width * 0.2m),
-                            Height = Convert.ToInt32(image.Height * 0.2m)
-                        },
-                        Mode = ResizeMode.Stretch
-                    };
+                    BucketName = bucketName,
+                    Key = keyName
+                };
 
-                    lambdaContext.Logger.LogLine("Resizing image");
-                    image.Mutate(x => x.Resize(resizeOptions));
-                    using (var outputStream = new MemoryStream())
-                    {
-                        lambdaContext.Logger.LogLine("Saveing image and returning resized stream");
-                        image.Save(outputStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder());   // this needs to be introspective
-                        return outputStream;
-                    }
-                }
+                ResponseHeaderOverrides responseHeaders = new ResponseHeaderOverrides();
+                responseHeaders.CacheControl = "No-cache";
+                request.ResponseHeaderOverrides = responseHeaders;
+
+                return await client.GetObjectAsync(request);
             }
         }
 
-        async Task<bool> PutThumbnailImage(AmazonS3Client client, string keyName, Stream thumbnailImageStream)
+        Stream GetResizedStream(Stream stream, decimal scalingFactor, string mimeType)
         {
-            var putRequest = new PutObjectRequest
+            using (Image<Rgba32> image = Image.Load(stream))
             {
-                BucketName = "thumbimagestc1983",
-                Key = keyName,
-                InputStream = thumbnailImageStream
-            };
+                var resizeOptions = new ResizeOptions
+                {
+                    Size = new SixLabors.Primitives.Size
+                    {
+                        Width = Convert.ToInt32(image.Width * scalingFactor),
+                        Height = Convert.ToInt32(image.Height * scalingFactor)
+                    },
+                    Mode = ResizeMode.Stretch
+                };
 
-            await client.PutObjectAsync(putRequest);
-            return true;
+                image.Mutate(x => x.Resize(resizeOptions));
+
+                var memoryStream = new MemoryStream();
+                image.Save(memoryStream, mimeType.AsEncoder());
+
+                return memoryStream;
+            }
+        }
+        async Task<bool> WriteS3Object(string bucketName, string keyName, Stream contentStream)
+        {
+            using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
+            {
+                var request = new PutObjectRequest
+                {
+                    BucketName = bucketName,
+                    Key = keyName,
+                    InputStream = contentStream
+                };
+
+                await client.PutObjectAsync(request);
+                return true;
+            }
         }
     }
 }

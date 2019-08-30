@@ -52,6 +52,8 @@ Resources:
       TracingConfig:
         Mode: Active
       Timeout: 300
+      Environment:
+        ThumbnailBucketName: !Ref ThumbnailBucketName
 
   AppRole:
     Type: AWS::IAM::Role
