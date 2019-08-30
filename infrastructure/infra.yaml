@@ -53,7 +53,8 @@ Resources:
         Mode: Active
       Timeout: 300
       Environment:
-        ThumbnailBucketName: !Ref ThumbnailBucketName
+        Variables:
+          ThumbnailBucketName: !Ref ThumbnailBucketName
 
   AppRole:
     Type: AWS::IAM::Role
