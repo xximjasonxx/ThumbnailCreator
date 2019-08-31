@@ -21,7 +21,7 @@ namespace Functions
         /// <returns></returns>
         public async Task<string> ExecuteAsync(S3Event evnt, ILambdaContext context)
         {
-            var s3Event = evnt.Records?[0].S3;
+            //var s3Event = evnt.Records?[0].S3;
             context.Logger.LogLine("Function fired");
 
             return string.Empty;

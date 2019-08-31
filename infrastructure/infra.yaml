@@ -30,19 +30,34 @@ Resources:
     Type: AWS::SNS::Topic
     Properties:
       TopicName: ImageUploadTopic
-      Subscriptions:
+      Subscription:
         - Endpoint: !GetAtt CreateThumbnailFunction.Arn
           Protocol: lambda
         - Endpoint: !GetAtt AnalyzeImageFunction.Arn
           Protocol: lambda
 
+  CreateThumbnailFunctionSNSInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CreateThumbnailFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "sns.amazonaws.com"
+
+  AnalyzeImageFunctionSNSInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AnalyzeImageFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "sns.amazonaws.com"
+
   RawBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref RawBucketName
-      TopicConfiguration:
-        Event: "s3:ObjectCreated:*"
-        Topic: !GetAtt ImageUploadTopic.Arn
+      NotificationConfiguration:
+        TopicConfigurations:
+          - Event: "s3:ObjectCreated:*"
+            Topic: !Ref ImageUploadTopic
 
   CreateThumbnailFunction:
     Type: AWS::Lambda::Function
