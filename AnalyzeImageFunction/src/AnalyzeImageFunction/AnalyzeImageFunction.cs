@@ -19,7 +19,7 @@ namespace Functions
         /// <param name="evnt"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<string> AnalyzeImageAsync(S3Event evnt, ILambdaContext context)
+        public async Task<string> ExecuteAsync(S3Event evnt, ILambdaContext context)
         {
             var s3Event = evnt.Records?[0].S3;
             context.Logger.LogLine("Function fired");

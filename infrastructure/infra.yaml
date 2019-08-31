@@ -44,6 +44,14 @@ Resources:
       Principal: "s3.amazonaws.com"
       SourceArn: !Sub "arn:aws:s3:::${RawBucketName}"
 
+  AnalyzeImageFunctionS3InvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AnalyzeImageFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "s3.amazonaws.com"
+      SourceArn: !Sub "arn:aws:s3:::${RawBucketName}"
+
   CreateThumbnailFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -59,6 +67,19 @@ Resources:
       Environment:
         Variables:
           ThumbnailBucketName: !Ref ThumbnailBucketName
+
+  AnalyzeImageFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: thumbnailcreator-artifacts
+        S3Key: !Ref AnalyzeImageLambdaVersionFile
+      Handler: AnalyzeImageFunction::Functions.AnalyzeImageFunction::ExecuteAsync
+      Runtime: dotnetcore2.1
+      Role: !GetAtt AppRole.Arn
+      TracingConfig:
+        Mode: Active
+      Timeout: 600
 
   AppRole:
     Type: AWS::IAM::Role
