@@ -48,8 +48,10 @@ Resources:
             Principal:
               Service:
                 - s3.amazonaws.com
-            Action: "sns:Publish"
+            Action: sns:Publish
             Resource: !Ref ImageUploadTopic
+      Topics:
+        - !Ref ImageUploadTopic
 
   CreateThumbnailFunctionSNSInvokePermission:
     Type: AWS::Lambda::Permission
