@@ -37,7 +37,7 @@ Resources:
           Protocol: lambda
 
   ImageUploadTopicPolicy:
-    Type: AWS::SNS:TopicPolicy
+    Type: AWS::SNS::TopicPolicy
     Properties:
       PolicyDocument:
         Id: S3TopicPublishPolicy
