@@ -13,9 +13,9 @@ steps:
     inputs:
       command: publish
       projects: AnalyzeImageFunction/src/AnalyzeImageFunction/AnalyzeImageFunction.csproj
-      arguments: -c Debug -o $(Build.ArtifactStagingDirectory)/publish
+      arguments: -c Debug -o $(Build.ArtifactStagingDirectory)/publish --no-restore
       publishWebProjects: false
-      zipAfterPublish: false 
+      zipAfterPublish: false
 
   - task: ArchiveFiles@2
     displayName: Archive Publish Output
@@ -23,7 +23,7 @@ steps:
       includeRootFolder: false
       archiveType: zip
       rootFolderOrFile: $(Build.ArtifactStagingDirectory)/publish/AnalyzeImageFunction
-      archiveFile: $(Build.ArtifactStagingDirectory)/publish-$(Build.BuildId).zip
+      archiveFile: $(Build.ArtifactStagingDirectory)/analyzeimage-publish-$(Build.BuildId).zip
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Artifacts

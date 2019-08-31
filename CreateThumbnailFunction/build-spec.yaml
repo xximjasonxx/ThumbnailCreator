@@ -18,7 +18,7 @@ steps:
     inputs:
       command: publish
       projects: CreateThumbnailFunction/src/CreateThumbnailFunction/CreateThumbnailFunction.csproj
-      arguments: -c Debug -o $(Build.ArtifactStagingDirectory)/publish
+      arguments: -c Debug -o $(Build.ArtifactStagingDirectory)/publish --no-restore
       publishWebProjects: false
       zipAfterPublish: false
 
@@ -28,7 +28,7 @@ steps:
       includeRootFolder: false
       archiveType: zip
       rootFolderOrFile: $(Build.ArtifactStagingDirectory)/publish/CreateThumbnailFunction
-      archiveFile: $(Build.ArtifactStagingDirectory)/publish-$(Build.BuildId).zip
+      archiveFile: $(Build.ArtifactStagingDirectory)/createthumbnail-publish-$(Build.BuildId).zip
 
   - task: CopyFiles@2
     displayName: Copy CloudFormation Template
