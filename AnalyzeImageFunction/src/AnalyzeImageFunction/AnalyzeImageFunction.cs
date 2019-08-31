@@ -23,6 +23,8 @@ namespace Functions
         {
             var s3Event = evnt.Records?[0].S3;
             context.Logger.LogLine("Function fired");
+
+            return string.Empty;
         }
     }
 }

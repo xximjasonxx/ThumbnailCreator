@@ -1,0 +1,32 @@
+pool:
+  vmImage: "ubuntu-latest"
+
+steps:
+  - task: DotNetCoreCLI@2
+    displayName: Restore Dependencies
+    inputs:
+      projects: AnalyzeImageFunction/src/AnalyzeImageFunction/AnalyzeImageFunction.csproj
+      command: restore
+
+  - task: DotNetCoreCLI@2
+    displayName: Publish Source
+    inputs:
+      command: publish
+      projects: AnalyzeImageFunction/src/AnalyzeImageFunction/AnalyzeImageFunction.csproj
+      arguments: -c Debug -o $(Build.ArtifatStagingDirectory)/publish
+      publishWebProjects: false
+      zipAfterPublish: false 
+
+  - task: ArchiveFiles@2
+    displayName: Archive Publish Output
+    inputs:
+      includeRootFolder: false
+      archiveType: zip
+      rootFolderOrFile: $(Build.ArtifactStagingDirectory)/publish/AnalyzeImageFunction
+      archiveFile: $(Build.ArtifactStagingDirectory)/publish-$(Build.BuildId).zip
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Artifacts
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: AnalyzeImage

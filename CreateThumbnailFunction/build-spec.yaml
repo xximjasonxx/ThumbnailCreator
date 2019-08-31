@@ -48,4 +48,4 @@ steps:
     displayName: Publish Artifacts
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)
-      ArtifactName: ThumbnailCreator
+      ArtifactName: CreateThumbnail
