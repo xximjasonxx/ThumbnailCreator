@@ -36,6 +36,21 @@ Resources:
         - Endpoint: !GetAtt AnalyzeImageFunction.Arn
           Protocol: lambda
 
+  ImageUploadTopicPolicy:
+    Type: AWS::SNS:TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: S3TopicPublishPolicy
+        Version: "2012-10-12"
+        Statement:
+          - Sid: S3PublishAllowStatement
+            Effect: Allow
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Action: "sns:Publish"
+            Resource: !Ref ImageUploadTopic
+
   CreateThumbnailFunctionSNSInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
