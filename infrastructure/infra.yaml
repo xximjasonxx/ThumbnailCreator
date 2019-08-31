@@ -26,33 +26,23 @@ Parameters:
     Description: The file containing the compiled contents for the Lambda
 
 Resources:
+  ImageUploadTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: ImageUploadTopic
+      Subscriptions:
+        - Endpoint: !GetAtt CreateThumbnailFunction.Arn
+          Protocol: lambda
+        - Endpoint: !GetAtt AnalyzeImageFunction.Arn
+          Protocol: lambda
+
   RawBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref RawBucketName
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Function: !GetAtt CreateThumbnailFunction.Arn
-            Event: "s3:ObjectCreated:*"
-    DependsOn:
-      - CreateThumbnailFunctionS3InvokePermission
-      - AnalyzeImageFunctionS3InvokePermission
-
-  CreateThumbnailFunctionS3InvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref CreateThumbnailFunction
-      Action: "lambda:InvokeFunction"
-      Principal: "s3.amazonaws.com"
-      SourceArn: !Sub "arn:aws:s3:::${RawBucketName}"
-
-  AnalyzeImageFunctionS3InvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref AnalyzeImageFunction
-      Action: "lambda:InvokeFunction"
-      Principal: "s3.amazonaws.com"
-      SourceArn: !Sub "arn:aws:s3:::${RawBucketName}"
+      TopicConfiguration:
+        Event: "s3:ObjectCreated:*"
+        Topic: !GetAtt ImageUploadTopic.Arn
 
   CreateThumbnailFunction:
     Type: AWS::Lambda::Function
