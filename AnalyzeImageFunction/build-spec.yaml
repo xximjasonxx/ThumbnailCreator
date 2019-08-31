@@ -13,7 +13,7 @@ steps:
     inputs:
       command: publish
       projects: AnalyzeImageFunction/src/AnalyzeImageFunction/AnalyzeImageFunction.csproj
-      arguments: -c Debug -o $(Build.ArtifatStagingDirectory)/publish
+      arguments: -c Debug -o $(Build.ArtifactStagingDirectory)/publish
       publishWebProjects: false
       zipAfterPublish: false 
 
