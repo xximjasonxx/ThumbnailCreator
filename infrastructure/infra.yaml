@@ -34,7 +34,9 @@ Resources:
         LambdaConfigurations:
           - Function: !GetAtt CreateThumbnailFunction.Arn
             Event: "s3:ObjectCreated:*"
-    DependsOn: CreateThumbnailFunctionS3InvokePermission
+    DependsOn:
+      - CreateThumbnailFunctionS3InvokePermission
+      - AnalyzeImageFunctionS3InvokePermission
 
   CreateThumbnailFunctionS3InvokePermission:
     Type: AWS::Lambda::Permission
