@@ -4,9 +4,12 @@ using System.Threading.Tasks;
 using Amazon;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.S3Events;
+using Amazon.Lambda.SNSEvents;
 using Amazon.S3;
 using Amazon.S3.Model;
+using CreateThumbnailFunction;
 using CreateThumbnailFunction.Extensions;
+using Newtonsoft.Json;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -25,12 +28,14 @@ namespace Functions
         /// <param name="evnt"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task ExecuteAsync(S3Event evnt, ILambdaContext context)
+        public async Task ExecuteAsync(SNSEvent evnt, ILambdaContext context)
         {
             try
             {
-                var s3Event = evnt.Records?[0].S3;
-                var getResponse = await GetS3Object(s3Event.Bucket.Name, s3Event.Object.Key);
+                context.Logger.LogLine(evnt.Records?[0].Sns.Message);
+
+                var s3Data = JsonConvert.DeserializeObject<SnsS3Model>(evnt.Records?[0].Sns.Message);
+                var getResponse = await GetS3Object(s3Data.Bucket, s3Data.Object.Key);
                 using (var responseStream = getResponse.ResponseStream)
                 {
                     using (var resizedStream = GetResizedStream(responseStream, 0.2m, getResponse.Headers.ContentType))
@@ -38,7 +43,7 @@ namespace Functions
                         resizedStream.Seek(0, SeekOrigin.Begin);
                         await WriteS3Object(
                             System.Environment.GetEnvironmentVariable("ThumbnailBucketName", EnvironmentVariableTarget.Process),
-                            $"thumb_{s3Event.Object.Key}",
+                            $"thumb_{s3Data.Object.Key}",
                             resizedStream);
                     }
                 }
