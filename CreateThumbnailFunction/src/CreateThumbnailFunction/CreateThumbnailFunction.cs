@@ -36,7 +36,7 @@ namespace Functions
 
                 var snsData = JsonConvert.DeserializeObject<SnsRecord>(evnt.Records?[0].Sns.Message);
                 var s3Data = snsData.Records.ElementAt(0).S3;
-                var getResponse = await GetS3Object(s3Data.Bucket, s3Data.Object.Key);
+                var getResponse = await GetS3Object(s3Data.Bucket.Name, s3Data.Object.Key);
                 using (var responseStream = getResponse.ResponseStream)
                 {
                     using (var resizedStream = GetResizedStream(responseStream, 0.2m, getResponse.Headers.ContentType))

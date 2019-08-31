@@ -15,8 +15,13 @@ namespace CreateThumbnailFunction
 
     public class S3Model
     {
-        public string Bucket { get; set; }
+        public S3BucketModel Bucket { get; set; }
         public S3ObjectModel Object { get; set; }
+    }
+
+    public class S3BucketModel
+    {
+        public string Name { get; set; }
     }
 
     public class S3ObjectModel
