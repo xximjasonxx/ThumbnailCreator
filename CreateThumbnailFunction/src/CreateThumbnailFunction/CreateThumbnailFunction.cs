@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.Lambda.Core;
-using Amazon.Lambda.S3Events;
+using System.Linq;
 using Amazon.Lambda.SNSEvents;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -34,7 +34,8 @@ namespace Functions
             {
                 context.Logger.LogLine(evnt.Records?[0].Sns.Message);
 
-                var s3Data = JsonConvert.DeserializeObject<SnsS3Model>(evnt.Records?[0].Sns.Message);
+                var snsData = JsonConvert.DeserializeObject<SnsRecord>(evnt.Records?[0].Sns.Message);
+                var s3Data = snsData.Records.ElementAt(0).S3;
                 var getResponse = await GetS3Object(s3Data.Bucket, s3Data.Object.Key);
                 using (var responseStream = getResponse.ResponseStream)
                 {
