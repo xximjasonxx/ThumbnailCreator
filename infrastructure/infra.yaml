@@ -25,6 +25,10 @@ Parameters:
     Type: String
     Description: The file containing the compiled contents for the Lambda
 
+  ImageTableName:
+    Type: String
+    Description: Name for the destination Image table in DynamoDB
+
 Resources:
   ImageUploadTopic:
     Type: AWS::SNS::Topic
@@ -104,6 +108,9 @@ Resources:
       TracingConfig:
         Mode: Active
       Timeout: 600
+      Envirionment:
+        Variables:
+          ImageTableName: !Ref ImageTableName
 
   AppRole:
     Type: AWS::IAM::Role
@@ -188,7 +195,7 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
-      TableName: ImageDataTable
+      TableName: !Ref ImageTableName
 
   ApiGatewayRest:
     Type: AWS::ApiGateway::RestApi

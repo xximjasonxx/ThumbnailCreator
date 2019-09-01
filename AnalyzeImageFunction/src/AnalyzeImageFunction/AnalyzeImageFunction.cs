@@ -71,16 +71,21 @@ namespace Functions
                 RegionEndpoint = RegionEndpoint.USEast1
             };
 
+            var itemDataDictionary = new Dictionary<string, AttributeValue>
+            {
+                { "ImageName", new AttributeValue { S = imageName } }
+            };
+            foreach (var label in labelList)
+            {
+                itemDataDictionary.Add(label.Name, new AttributeValue { N = label.Confidence.ToString() });
+            }
+
             using (var client = new AmazonDynamoDBClient(clientConfig))
             {
                 var request = new PutItemRequest
                 {
                     TableName = "ImageDataTable",
-                    Item = new Dictionary<string, AttributeValue>
-                    {
-                        { "ImageName", new AttributeValue { S = imageName } },
-                        { "Data", new AttributeValue { S = new JArray(labelList.Select((label) => new JObject(new JProperty(label.Name, label.Confidence)))).ToString() } }
-                    }
+                    Item = itemDataDictionary
                 };
 
                 await client.PutItemAsync(request);
