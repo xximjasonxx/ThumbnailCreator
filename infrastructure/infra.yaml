@@ -104,9 +104,6 @@ Resources:
       TracingConfig:
         Mode: Active
       Timeout: 600
-      Environment:
-        Variables:
-          ImageTableName: !Ref ImageTableName
 
   AppRole:
     Type: AWS::IAM::Role
