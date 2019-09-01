@@ -162,6 +162,13 @@ Resources:
               - Effect: Allow
                 Action: rekognition:DetectLabels
                 Resource: "*"
+        - PolicyName: tc-dynamo-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "dynamo:*"
+                Resource: "*"
       RoleName: tc-role
 
   ThumbnailBucket:

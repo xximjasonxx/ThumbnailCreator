@@ -9,6 +9,10 @@ using Amazon.Rekognition.Model;
 using AnalyzeImageFunction;
 using Newtonsoft.Json;
 using System.Linq;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
+using AnalyzeImageFunction;
+using Newtonsoft.Json.Linq;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -60,9 +64,27 @@ namespace Functions
             return response.Labels;
         }
 
-        async Task WriteToDynamoTableAsync(ICollection<Label> labelList)
+        async Task WriteToDynamoTableAsync(string imageName, ICollection<Label> labelList)
         {
+            var clientConfig = new AmazonDynamoDBConfig
+            {
+                RegionEndpoint = RegionEndpoint.USEast1
+            };
 
+            using (var client = new AmazonDynamoDBClient(clientConfig))
+            {
+                var request = new PutItemRequest
+                {
+                    TableName = "ImageDataTable",
+                    Item = new Dictionary<string, AttributeValue>
+                    {
+                        { "ImageName", new AttributeValue { S = imageName } },
+                        { "Data", new AttributeValue { S = new JArray(labelList.Select((label) => new JObject(new JProperty(label.Name, label.Confidence)))).ToString() } }
+                    }
+                };
+
+                await client.PutItemAsync(request);
+            }
         }
     }
 }

@@ -10,5 +10,6 @@
     <PackageReference Include="AWSSDK.Rekognition" Version="3.3.101.8"/>
     <PackageReference Include="Amazon.Lambda.SNSEvents" Version="1.1.0"/>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2"/>
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.101.59"/>
   </ItemGroup>
 </Project>
