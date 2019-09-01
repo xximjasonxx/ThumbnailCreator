@@ -86,7 +86,7 @@ namespace Functions
             {
                 var request = new PutItemRequest
                 {
-                    TableName = "ImageDataTable",
+                    TableName = "ImageDataTable2",
                     Item = itemDataDictionary
                 };
 

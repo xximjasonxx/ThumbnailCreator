@@ -191,7 +191,7 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
-      TableName: "ImageDataTable"
+      TableName: "ImageDataTable2"
 
   ApiGatewayRest:
     Type: AWS::ApiGateway::RestApi
