@@ -167,7 +167,11 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: "dynamodb:PutItem"
+                Action:
+                  - "dynamodb:PutItem"
+                  - "dynamodb:Scan"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:Query"
                 Resource: "*"
       RoleName: tc-role
 
@@ -200,15 +204,24 @@ Resources:
       EndpointConfiguration:
         Types:
           - REGIONAL
+    DependsOn:
+      - ImageTable
 
   BucketApiResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       PathPart: !Ref RawBucketName
       RestApiId: !Ref ApiGatewayRest
-      ParentId: !GetAtt
-        - ApiGatewayRest
-        - RootResourceId
+      ParentId: !GetAtt ApiGatewayRest.RootResourceId
+    DependsOn:
+      - ApiGatewayRest
+
+  ImagesApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      PathPart: "all-images"
+      RestApiId: !Ref ApiGatewayRest
+      ParentId: !GetAtt ApiGatewayRest.RootResourceId
     DependsOn:
       - ApiGatewayRest
 
@@ -235,9 +248,7 @@ Resources:
         method.request.path.item: true
       Integration:
         Type: AWS
-        Credentials: !GetAtt
-          - AppRole
-          - Arn
+        Credentials: !GetAtt AppRole.Arn
         IntegrationHttpMethod: PUT
         PassthroughBehavior: WHEN_NO_MATCH
         RequestParameters:
@@ -253,6 +264,26 @@ Resources:
         IntegrationResponses:
           - StatusCode: 201
 
+  ImagesApiMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGatewayRest
+      ResourceId: !Ref ImagesApiResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt AppRole.Arn
+        IntegrationHttpMethod: POST
+        PassthroughBehavior: WHEN_NO_MATCH
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Scan"
+        RequestTemplates:
+          application/json: >-
+            { "TableName": "ImageDataTable2" }
+        IntegrationResponses:
+          - StatusCode: 200
   ApiGatewayDeployment:
     Type: AWS::ApiGateway::Deployment
     Properties:
