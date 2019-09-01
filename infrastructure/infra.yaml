@@ -187,10 +187,12 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
+        - AttributeName: "Id"
+          AttributeType: "S"
         - AttributeName: "ImageName"
           AttributeType: "S"
       KeySchema:
-        - AttributeName: "ImageName"
+        - AttributeName: "Id"
           KeyType: HASH
       ProvisionedThroughput:
         ReadCapacityUnits: "5"

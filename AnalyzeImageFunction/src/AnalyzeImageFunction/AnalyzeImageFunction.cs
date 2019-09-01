@@ -13,6 +13,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using AnalyzeImageFunction;
 using Newtonsoft.Json.Linq;
+using System;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -73,6 +74,7 @@ namespace Functions
 
             var itemDataDictionary = new Dictionary<string, AttributeValue>
             {
+                { "Id", new AttributeValue { S = Guid.NewGuid().ToString() }},
                 { "ImageName", new AttributeValue { S = imageName } }
             };
             foreach (var label in labelList)
