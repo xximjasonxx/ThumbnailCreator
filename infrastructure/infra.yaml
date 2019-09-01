@@ -189,14 +189,12 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "Id"
           AttributeType: "S"
-        - AttributeName: "ImageName"
-          AttributeType: "S"
       KeySchema:
         - AttributeName: "Id"
           KeyType: HASH
       ProvisionedThroughput:
-        ReadCapacityUnits: "5"
-        WriteCapacityUnits: "5"
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
       TableName: !Ref ImageTableName
 
   ApiGatewayRest:
