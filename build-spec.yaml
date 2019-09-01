@@ -96,13 +96,6 @@ stages:
               Contents: infra.yaml
               TargetFolder: $(Build.ArtifactStagingDirectory)
 
-          - task: CopyFiles@2
-            displayName: Copy CloudFormation Template Parameters
-            inputs:
-              SourceFolder: infrastructure
-              Contents: params.json
-              TargetFolder: $(Build.ArtifactStagingDirectory)
-
           - task: PublishBuildArtifacts@1
             displayName: Publish Artifacts
             inputs:
