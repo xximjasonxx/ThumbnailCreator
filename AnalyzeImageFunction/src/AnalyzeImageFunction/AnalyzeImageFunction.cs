@@ -58,7 +58,7 @@ namespace Functions
                     }
                 },
                 MaxLabels = 10,
-                MinConfidence = 75f
+                MinConfidence = 80f
             };
 
             var response = await client.DetectLabelsAsync(labelsRequest);
