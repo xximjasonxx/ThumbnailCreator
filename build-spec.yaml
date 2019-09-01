@@ -1,0 +1,110 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+stages:
+  - stage: buildlambdafunction
+    displayName: Build Lambda Functions
+    jobs:
+      - job: buildcreatethumbnailfunction
+        displayName: Build Create Thumbnail Function
+        pool:
+          vmImage: ubuntu-latest
+          demands:
+            - msbuild
+            - visualstudio
+        steps:
+          - task: DotNetCoreCLI@2
+            displayName: Restore Dependencies
+            inputs:
+              projects: CreateThumbnailFunction/src/CreateThumbnailFunction/CreateThumbnailFunction.csproj
+              command: restore
+
+          - task: DotNetCoreCLI@2
+            displayName: Publish Source
+            inputs:
+              command: publish
+              projects: CreateThumbnailFunction/src/CreateThumbnailFunction/CreateThumbnailFunction.csproj
+              arguments: -c Debug -o $(Build.ArtifactStagingDirectory)/publish --no-restore
+              publishWebProjects: false
+              zipAfterPublish: false
+
+          - task: ArchiveFiles@2
+            displayName: Archive Publish Output
+            inputs:
+              includeRootFolder: false
+              archiveType: zip
+              rootFolderOrFile: $(Build.ArtifactStagingDirectory)/publish/CreateThumbnailFunction
+              archiveFile: $(Build.ArtifactStagingDirectory)/createthumbnail-publish-$(Build.BuildId).zip
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Artifacts
+            inputs:
+              PathtoPublish: $(Build.ArtifactStagingDirectory)
+              ArtifactName: CreateThumbnail
+
+      - job: buildanalyzefunction
+        displayName: Build Analyze Image Function
+        pool:
+          vmImage: ubuntu-latest
+          demands:
+            - msbuild
+            - visualstudio
+        steps:
+          - task: DotNetCoreCLI@2
+            displayName: Restore Dependencies
+            inputs:
+              projects: AnalyzeImageFunction/src/AnalyzeImageFunction/AnalyzeImageFunction.csproj
+              command: restore
+
+          - task: DotNetCoreCLI@2
+            displayName: Publish Source
+            inputs:
+              command: publish
+              projects: AnalyzeImageFunction/src/AnalyzeImageFunction/AnalyzeImageFunction.csproj
+              arguments: -c Debug -o $(Build.ArtifactStagingDirectory)/publish --no-restore
+              publishWebProjects: false
+              zipAfterPublish: false
+
+          - task: ArchiveFiles@2
+            displayName: Archive Publish Output
+            inputs:
+              includeRootFolder: false
+              archiveType: zip
+              rootFolderOrFile: $(Build.ArtifactStagingDirectory)/publish/AnalyzeImageFunction
+              archiveFile: $(Build.ArtifactStagingDirectory)/analyzeimage-publish-$(Build.BuildId).zip
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Artifacts
+            inputs:
+              PathtoPublish: $(Build.ArtifactStagingDirectory)
+              ArtifactName: AnalyzeImageFunction
+
+      - job: buildanalyzefunction
+        displayName: Build Analyze Image Function
+        pool:
+          vmImage: ubuntu-latest
+          demands:
+            - msbuild
+            - visualstudio
+        steps:
+          - task: CopyFiles@2
+            displayName: Copy CloudFormation Template
+            inputs:
+              SourceFolder: infrastructure
+              Contents: infra.yaml
+              TargetFolder: $(Build.ArtifactStagingDirectory)
+
+          - task: CopyFiles@2
+            displayName: Copy CloudFormation Template Parameters
+            inputs:
+              SourceFolder: infrastructure
+              Contents: params.json
+              TargetFolder: $(Build.ArtifactStagingDirectory)
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Artifacts
+            inputs:
+              PathtoPublish: $(Build.ArtifactStagingDirectory)
+              ArtifactName: Infrastructure

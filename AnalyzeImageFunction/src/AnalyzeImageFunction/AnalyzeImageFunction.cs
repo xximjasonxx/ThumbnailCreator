@@ -60,7 +60,7 @@ namespace Functions
             return response.Labels;
         }
 
-        async Task WriteToDynamoTableAsync()
+        async Task WriteToDynamoTableAsync(ICollection<Label> labelList)
         {
 
         }
