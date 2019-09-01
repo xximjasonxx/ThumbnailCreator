@@ -39,8 +39,8 @@ namespace Functions
                     s3Data.Bucket.Name,
                     s3Data.Object.Key);
 
-                foreach (Label label in detectedLabels)
-                    context.Logger.LogLine($"{label.Name}: {label.Confidence}");
+                await WriteToDynamoTableAsync(s3Data.Object.Key, detectedLabels);
+                context.Logger.LogLine("Operation Complete");
             }
         }
 
