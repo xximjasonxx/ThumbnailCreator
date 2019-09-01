@@ -81,8 +81,8 @@ stages:
               PathtoPublish: $(Build.ArtifactStagingDirectory)
               ArtifactName: AnalyzeImageFunction
 
-      - job: buildanalyzefunction
-        displayName: Build Analyze Image Function
+      - job: publishinfrastructure
+        displayName: Publish Infrastructure
         pool:
           vmImage: ubuntu-latest
           demands:
