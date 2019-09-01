@@ -108,7 +108,7 @@ Resources:
       TracingConfig:
         Mode: Active
       Timeout: 600
-      Envirionment:
+      Environment:
         Variables:
           ImageTableName: !Ref ImageTableName
 
