@@ -270,7 +270,7 @@ Resources:
       RestApiId: !Ref ApiGatewayRest
       ResourceId: !Ref ImagesApiResource
       HttpMethod: GET
-      AuthorizationType: NONE
+      AuthorizationType: AWS_IAM
       MethodResponses:
         - StatusCode: 200
       Integration:
