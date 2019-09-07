@@ -227,7 +227,7 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref ApiGatewayRest
-      ResourceId: !Ref BucketItemApiResource
+      ResourceId: !Ref ImageApiResource
       HttpMethod: POST
       AuthorizationType: NONE
       OperationName: SaveImage
