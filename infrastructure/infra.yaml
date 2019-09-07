@@ -210,22 +210,13 @@ Resources:
   BucketApiResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      PathPart: !Ref RawBucketName
+      PathPart: image
       RestApiId: !Ref ApiGatewayRest
       ParentId: !GetAtt ApiGatewayRest.RootResourceId
     DependsOn:
       - ApiGatewayRest
 
-  ImagesApiResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      PathPart: "all-images"
-      RestApiId: !Ref ApiGatewayRest
-      ParentId: !GetAtt ApiGatewayRest.RootResourceId
-    DependsOn:
-      - ApiGatewayRest
-
-  BucketItemApiResource:
+  ImageApiResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       PathPart: "{item}"
@@ -268,7 +259,7 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref ApiGatewayRest
-      ResourceId: !Ref ImagesApiResource
+      ResourceId: !Ref ImageApiResource
       HttpMethod: GET
       AuthorizationType: NONE
       MethodResponses:
