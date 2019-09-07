@@ -210,13 +210,22 @@ Resources:
   BucketApiResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      PathPart: image
+      PathPart: !Ref RawBucketName
       RestApiId: !Ref ApiGatewayRest
       ParentId: !GetAtt ApiGatewayRest.RootResourceId
     DependsOn:
       - ApiGatewayRest
 
-  ImageApiResource:
+  ImagesApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      PathPart: "all-images"
+      RestApiId: !Ref ApiGatewayRest
+      ParentId: !GetAtt ApiGatewayRest.RootResourceId
+    DependsOn:
+      - ApiGatewayRest
+
+  BucketItemApiResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       PathPart: "{item}"
@@ -227,9 +236,9 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref ApiGatewayRest
-      ResourceId: !Ref ImageApiResource
+      ResourceId: !Ref BucketItemApiResource
       HttpMethod: POST
-      AuthorizationType: NONE
+      AuthorizationType: AWS_IAM
       OperationName: SaveImage
       MethodResponses:
         - StatusCode: 201
@@ -259,7 +268,7 @@ Resources:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref ApiGatewayRest
-      ResourceId: !Ref ImageApiResource
+      ResourceId: !Ref ImagesApiResource
       HttpMethod: GET
       AuthorizationType: NONE
       MethodResponses:
