@@ -126,7 +126,9 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: "s3:*"
-                Resource: "*"
+                Resource:
+                  - !GetAtt RawBucket.Arn
+                  - !GetAll ThumbnailBucket.Arn
         - PolicyName: "tc-lambda-policy"
           PolicyDocument:
             Version: "2012-10-17"
