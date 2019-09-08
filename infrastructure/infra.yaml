@@ -135,7 +135,9 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: "lambda:*"
-                Resource: "*"
+                Resource:
+                  - !GetAtt CreateThumbnailFunction.Arn
+                  - !GetAtt AnalyzeImageFunction
         - PolicyName: "tc-xray-policy"
           PolicyDocument:
             Version: "2012-10-17"
@@ -163,7 +165,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: rekognition:DetectLabels
-                Resource: "*"
+                Resource:
+                  - !GetAtt AnalyzeImageFunction.Arn
         - PolicyName: tc-dynamo-policy
           PolicyDocument:
             Version: "2012-10-17"
@@ -172,9 +175,9 @@ Resources:
                 Action:
                   - "dynamodb:PutItem"
                   - "dynamodb:Scan"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:Query"
-                Resource: "*"
+                Resource:
+                  - !GetAtt ImagesApiMethod.Arn
+                  - !GetAtt AnalyzeImageFunction.Arn
       RoleName: tc-role
 
   ThumbnailBucket:
