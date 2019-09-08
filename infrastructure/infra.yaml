@@ -97,7 +97,6 @@ Resources:
     Properties:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
-        Path: "/"
         Policies:
           - PolicyName: CreateThumbnailS3Policy
             PolicyDocument:
