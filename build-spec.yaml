@@ -5,7 +5,6 @@
 
 trigger:
   - master
-  - release/version*
 
 stages:
   - stage: buildlambdafunction

@@ -103,6 +103,7 @@ Resources:
               AWS: "*"
               Service:
                 - lambda.amazonaws.com
+                - s3.amazonaws.com
             Action:
               - "sts:AssumeRole"
       Path: "/"
@@ -112,8 +113,24 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
-                Action: "s3:PutObject"
+                Action:
+                  - "s3:PutObject"
+                  - "s3:GetObject"
                 Resource: !GetAtt ThumbnailBucket.Arn
+        - PolicyName: CreateThumbnailLogsPolicy
+          PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action: "logs:*"
+                  Resource: "arn:aws:logs:*:*:*"
+          - PolicyName: "tc-cloudwatch-policy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action: "cloudwatch:*"
+                  Resource: "*"
 
   AnalyzeImageFunction:
     Type: AWS::Lambda::Function
