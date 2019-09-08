@@ -84,13 +84,28 @@ Resources:
         S3Key: !Ref CreateThumbnailLambdaVersionFile
       Handler: CreateThumbnailFunction::Functions.CreateThumbnailFunction::ExecuteAsync
       Runtime: dotnetcore2.1
-      Role: !GetAtt AppRole.Arn
+      Role: !GetAtt CreateThumbnailRole.Arn
       TracingConfig:
         Mode: Active
       Timeout: 300
       Environment:
         Variables:
           ThumbnailBucketName: !Ref ThumbnailBucketName
+
+  CreateThumbnailRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Path: "/"
+        Policies:
+          - PolicyName: CreateThumbnailS3Policy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action: "s3:PutObject"
+                  Resource: !GetAtt ThumbnailBucket.Arn
 
   AnalyzeImageFunction:
     Type: AWS::Lambda::Function
@@ -284,6 +299,7 @@ Resources:
             { "TableName": "ImageDataTable2" }
         IntegrationResponses:
           - StatusCode: 200
+
   ApiGatewayDeployment:
     Type: AWS::ApiGateway::Deployment
     Properties:
