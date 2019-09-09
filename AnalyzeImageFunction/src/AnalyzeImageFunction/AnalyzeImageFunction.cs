@@ -32,6 +32,10 @@ namespace Functions
         /// <returns></returns>
         public async Task ExecuteAsync(SNSEvent evnt, ILambdaContext context)
         {
+            var jsonEvent = JObject.Parse(evnt.Records?[0].Sns.Message);
+            if (jsonEvent.Value<string>("Event") == "s3:TestEvent")
+                return;
+
             var snsData = JsonConvert.DeserializeObject<SnsRecord>(evnt.Records?[0].Sns.Message);
             var s3Data = snsData.Records.ElementAt(0).S3;
             using (var client = new AmazonRekognitionClient(RegionEndpoint.USEast1))
