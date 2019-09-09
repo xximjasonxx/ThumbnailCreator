@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using Newtonsoft.Json.Linq;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -33,6 +34,9 @@ namespace Functions
             try
             {
                 context.Logger.LogLine(evnt.Records?[0].Sns.Message);
+                var jsonEvent = JObject.Parse(evnt.Records?[0].Sns.Message);
+                if (jsonEvent.Value<string>("Event") == "s3:TestEvent")
+                    return;
 
                 var snsData = JsonConvert.DeserializeObject<SnsRecord>(evnt.Records?[0].Sns.Message);
                 var s3Data = snsData.Records.ElementAt(0).S3;

@@ -170,9 +170,7 @@ Resources:
                 Action:
                   - "dynamodb:PutItem"
                   - "dynamodb:Scan"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:Query"
-                Resource: "*"
+                Resource: !GetAtt ImageTable.Arn
       RoleName: tc-role
 
   ThumbnailBucket:
