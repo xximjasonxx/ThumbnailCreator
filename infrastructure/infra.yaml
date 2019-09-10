@@ -58,7 +58,8 @@ Resources:
             Action: "sts:AssumeRole"
       Path: "/"
       Policies:
-        - PolicyDocument:
+        - PolicyName: "tc-createthumbnailfunctionrole"
+          PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
@@ -106,7 +107,8 @@ Resources:
             Action: "sts:AssumeRole"
       Path: "/"
       Policies:
-        - PolicyDocument:
+        - PolicyName: "tc-analyzeimagefunctionrole"
+          PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
@@ -241,7 +243,8 @@ Resources:
             Action: "sts:AssumeRole"
       Path: "/"
       Policies:
-        - PolicyDocument:
+        - PolicyName: "tc-bucketitemmethodrole"
+          PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
@@ -293,7 +296,8 @@ Resources:
             Action: "sts:AssumeRole"
       Path: "/"
       Policies:
-        - PolicyDocument:
+        - PolicyName: "tc-imagesapimethodrole"
+          PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
@@ -326,6 +330,9 @@ Resources:
     Properties:
       RestApiId: !Ref ApiGatewayRest
       StageName: DefaultDeployment
+    DependsOn:
+      - BucketItemApiMethod
+      - ImagesApiMethod
 
   DefaultApiGatewayStage:
     Type: AWS::ApiGateway::Stage
