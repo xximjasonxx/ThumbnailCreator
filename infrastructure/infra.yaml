@@ -249,7 +249,7 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: "s3:Put*"
-                Resource: "*"
+                Resource: !GetAtt RawBucket.Arn
 
   BucketItemApiMethod:
     Type: AWS::ApiGateway::Method
@@ -302,7 +302,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: "dynamodb:Scan"
-                Resource: "*"
+                Resource: !GetAtt ImageTable.Arn
 
   ImagesApiMethod:
     Type: AWS::ApiGateway::Method
