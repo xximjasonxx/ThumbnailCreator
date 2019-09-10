@@ -54,10 +54,8 @@ Resources:
           - Effect: Allow
             Principal:
               AWS: "*"
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
       Path: "/"
       Policies:
         - PolicyDocument:
@@ -65,28 +63,16 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: "s3:Put*"
-                Resource: !GetAtt ThumbnailBucket.Arn
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
+                Resource: "*"
               - Effect: "Allow"
                 Action: "s3:Get*"
-                Resource: !GetAll RawBucket.Arn
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
+                Resource: "*"
               - Effect: "Allow"
                 Action: "logs:*"
                 Resource: "arn:aws:logs:*:*:*"
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
               - Effect: "Allow"
                 Action: "cloudwatch:*"
                 Resource: "*"
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
               - Effect: "Allow"
                 Action: "xray:*"
                 Resource: "*"
@@ -116,10 +102,8 @@ Resources:
           - Effect: Allow
             Principal:
               AWS: "*"
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
       Path: "/"
       Policies:
         - PolicyDocument:
@@ -127,34 +111,19 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: "s3:Get*"
-                Resource: !GetAll RawBucket.Arn
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
+                Resource: "*"
               - Effect: Allow
                 Action: rekognition:DetectLabels
                 Resource: "*"
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
               - Effect: Allow
                 Action: "dynamodb:PutItem"
-                Resource: !GetAtt ImageTable.Arn
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
+                Resource: "*"
               - Effect: "Allow"
                 Action: "logs:*"
                 Resource: "arn:aws:logs:*:*:*"
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
               - Effect: "Allow"
                 Action: "cloudwatch:*"
                 Resource: "*"
-        - PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
               - Effect: "Allow"
                 Action: "xray:*"
                 Resource: "*"
@@ -192,8 +161,7 @@ Resources:
           - Sid: S3PublishAllowStatement
             Effect: Allow
             Principal:
-              Service:
-                - s3.amazonaws.com
+              Service: s3.amazonaws.com
             Action: sns:Publish
             Resource: !Ref ImageUploadTopic
       Topics:
@@ -269,10 +237,8 @@ Resources:
           - Effect: Allow
             Principal:
               AWS: "*"
-              Service:
-                - apigateway.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
+              Service: apigateway.amazonaws.com
+            Action: "sts:AssumeRole"
       Path: "/"
       Policies:
         - PolicyDocument:
@@ -280,7 +246,7 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: "s3:Put*"
-                Resource: !GetAtt RawBucket.Arn
+                Resource: "*"
 
   BucketItemApiMethod:
     Type: AWS::ApiGateway::Method
@@ -323,10 +289,8 @@ Resources:
           - Effect: Allow
             Principal:
               AWS: "*"
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
       Path: "/"
       Policies:
         - PolicyDocument:
@@ -334,7 +298,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: "dynamodb:Scan"
-                Resource: !GetAtt ImageTable.Arn
+                Resource: "*"
 
   ImagesApiMethod:
     Type: AWS::ApiGateway::Method
@@ -356,14 +320,12 @@ Resources:
             { "TableName": "ImageDataTable2" }
         IntegrationResponses:
           - StatusCode: 200
+    
   ApiGatewayDeployment:
     Type: AWS::ApiGateway::Deployment
     Properties:
       RestApiId: !Ref ApiGatewayRest
       StageName: DefaultDeployment
-    DependsOn:
-      - ApiGatewayRest
-      - BucketItemApiMethod
 
   DefaultApiGatewayStage:
     Type: AWS::ApiGateway::Stage
@@ -371,7 +333,3 @@ Resources:
       RestApiId: !Ref ApiGatewayRest
       TracingEnabled: true
       DeploymentId: !Ref ApiGatewayDeployment
-  
-  
-  
-  
