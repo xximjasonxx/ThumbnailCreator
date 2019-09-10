@@ -26,6 +26,152 @@ Parameters:
     Description: The file containing the compiled contents for the Lambda
 
 Resources:
+  ThumbnailBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref ThumbnailBucketName
+
+  ImageTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "Id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "Id"
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: "ImageDataTable2"
+
+  CreateThumbnailFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "*"
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "s3:Put*"
+                Resource: !GetAtt ThumbnailBucket.Arn
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "s3:Get*"
+                Resource: !GetAll RawBucket.Arn
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "logs:*"
+                Resource: "arn:aws:logs:*:*:*"
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "cloudwatch:*"
+                Resource: "*"
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "xray:*"
+                Resource: "*"
+
+  CreateThumbnailFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: thumbnailcreator-artifacts
+        S3Key: !Ref CreateThumbnailLambdaVersionFile
+      Handler: CreateThumbnailFunction::Functions.CreateThumbnailFunction::ExecuteAsync
+      Runtime: dotnetcore2.1
+      Role: !GetAtt CreateThumbnailFunctionRole.Arn
+      TracingConfig:
+        Mode: Active
+      Timeout: 300
+      Environment:
+        Variables:
+          ThumbnailBucketName: !Ref ThumbnailBucketName
+
+  AnalyzeImageFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "*"
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "s3:Get*"
+                Resource: !GetAll RawBucket.Arn
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: rekognition:DetectLabels
+                Resource: "*"
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "dynamodb:PutItem"
+                Resource: !GetAtt ImageTable.Arn
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "logs:*"
+                Resource: "arn:aws:logs:*:*:*"
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "cloudwatch:*"
+                Resource: "*"
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "xray:*"
+                Resource: "*"
+
+  AnalyzeImageFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: thumbnailcreator-artifacts
+        S3Key: !Ref AnalyzeImageLambdaVersionFile
+      Handler: AnalyzeImageFunction::Functions.AnalyzeImageFunction::ExecuteAsync
+      Runtime: dotnetcore2.1
+      Role: !GetAtt AnalyzeImageFunctionRole.Arn
+      TracingConfig:
+        Mode: Active
+      Timeout: 600
+  
   ImageUploadTopic:
     Type: AWS::SNS::Topic
     Properties:
@@ -52,7 +198,16 @@ Resources:
             Resource: !Ref ImageUploadTopic
       Topics:
         - !Ref ImageUploadTopic
-
+  
+  RawBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref RawBucketName
+      NotificationConfiguration:
+        TopicConfigurations:
+          - Event: "s3:ObjectCreated:*"
+            Topic: !Ref ImageUploadTopic
+  
   CreateThumbnailFunctionSNSInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -66,136 +221,7 @@ Resources:
       FunctionName: !Ref AnalyzeImageFunction
       Action: "lambda:InvokeFunction"
       Principal: "sns.amazonaws.com"
-
-  RawBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref RawBucketName
-      NotificationConfiguration:
-        TopicConfigurations:
-          - Event: "s3:ObjectCreated:*"
-            Topic: !Ref ImageUploadTopic
-
-  CreateThumbnailFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      Code:
-        S3Bucket: thumbnailcreator-artifacts
-        S3Key: !Ref CreateThumbnailLambdaVersionFile
-      Handler: CreateThumbnailFunction::Functions.CreateThumbnailFunction::ExecuteAsync
-      Runtime: dotnetcore2.1
-      Role: !GetAtt AppRole.Arn
-      TracingConfig:
-        Mode: Active
-      Timeout: 300
-      Environment:
-        Variables:
-          ThumbnailBucketName: !Ref ThumbnailBucketName
-
-  AnalyzeImageFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      Code:
-        S3Bucket: thumbnailcreator-artifacts
-        S3Key: !Ref AnalyzeImageLambdaVersionFile
-      Handler: AnalyzeImageFunction::Functions.AnalyzeImageFunction::ExecuteAsync
-      Runtime: dotnetcore2.1
-      Role: !GetAtt AppRole.Arn
-      TracingConfig:
-        Mode: Active
-      Timeout: 600
-
-  AppRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: "*"
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      Path: "/"
-      Policies:
-        - PolicyName: "tc-s3-policy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action: "s3:Put*"
-                Resource:
-                  - !GetAtt RawBucket.Arn
-                  - !GetAtt ThumbnailBucket.Arn
-        - PolicyName: "tc-lambda-policy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action: "lambda:*"
-                Resource:
-                  - !GetAtt CreateThumbnailFunction.Arn
-                  - !GetAtt AnalyzeImageFunction.Arn
-        - PolicyName: "tc-xray-policy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action: "xray:*"
-                Resource: "*"
-        - PolicyName: "tc-logs-policy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action: "logs:*"
-                Resource: "arn:aws:logs:*:*:*"
-        - PolicyName: "tc-cloudwatch-policy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action: "cloudwatch:*"
-                Resource: "*"
-        - PolicyName: tc-rekognition-policy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: rekognition:DetectLabels
-                Resource: "*"
-        - PolicyName: tc-dynamo-policy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:PutItem"
-                  - "dynamodb:Scan"
-                Resource: !GetAtt ImageTable.Arn
-      RoleName: tc-role
-
-  ThumbnailBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref ThumbnailBucketName
-
-  ImageTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: "Id"
-          AttributeType: "S"
-      KeySchema:
-        - AttributeName: "Id"
-          KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-      TableName: "ImageDataTable2"
-
+  
   ApiGatewayRest:
     Type: AWS::ApiGateway::RestApi
     Properties:
@@ -234,6 +260,28 @@ Resources:
       RestApiId: !Ref ApiGatewayRest
       ParentId: !Ref BucketApiResource
 
+  BucketItemApiMethodRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "*"
+              Service:
+                - apigateway.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "s3:Put*"
+                Resource: !GetAtt RawBucket.Arn
+
   BucketItemApiMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -250,7 +298,7 @@ Resources:
         method.request.path.item: true
       Integration:
         Type: AWS
-        Credentials: !GetAtt AppRole.Arn
+        Credentials: !GetAtt BucketItemApiMethodRole.Arn
         IntegrationHttpMethod: PUT
         PassthroughBehavior: WHEN_NO_MATCH
         RequestParameters:
@@ -266,6 +314,28 @@ Resources:
         IntegrationResponses:
           - StatusCode: 201
 
+  ImagesApiMethodRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "*"
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "dynamodb:Scan"
+                Resource: !GetAtt ImageTable.Arn
+
   ImagesApiMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -277,7 +347,7 @@ Resources:
         - StatusCode: 200
       Integration:
         Type: AWS
-        Credentials: !GetAtt AppRole.Arn
+        Credentials: !GetAtt ImagesApiMethodRole.Arn
         IntegrationHttpMethod: POST
         PassthroughBehavior: WHEN_NO_MATCH
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:dynamodb:action/Scan"
@@ -301,3 +371,7 @@ Resources:
       RestApiId: !Ref ApiGatewayRest
       TracingEnabled: true
       DeploymentId: !Ref ApiGatewayDeployment
+  
+  
+  
+  
