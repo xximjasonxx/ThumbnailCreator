@@ -125,15 +125,19 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
-                Action: "s3:*"
-                Resource: "*"
+                Action: "s3:Put*"
+                Resource:
+                  - !GetAtt RawBucket.Arn
+                  - !GetAtt ThumbnailBucket.Arn
         - PolicyName: "tc-lambda-policy"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
                 Action: "lambda:*"
-                Resource: "*"
+                Resource:
+                  - !GetAtt CreateThumbnailFunction.Arn
+                  - !GetAtt AnalyzeImageFunction.Arn
         - PolicyName: "tc-xray-policy"
           PolicyDocument:
             Version: "2012-10-17"
