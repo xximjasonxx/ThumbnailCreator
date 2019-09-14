@@ -48,17 +48,6 @@ Resources:
             Principal:
               AWS: "*"
               Service: lambda.amazonaws.com
-          - Action: "s3:Get*"
-            Effect: Allow
-            Resource:
-              Fn::Join:
-                - ""
-                -
-                  - !GetAtt RawBucket.Arn
-                  - "/*"
-            Principal:
-              AWS: "*"
-              Service: lambda.amazonaws.com
 
   ImageTable:
     Type: AWS::DynamoDB::Table
@@ -96,7 +85,7 @@ Resources:
                 Resource: !GetAtt ThumbnailBucket.Arn
               - Effect: "Allow"
                 Action: "s3:Get*"
-                Resource: !GetAtt RawBucket.Arn
+                Resource: !Sub "arn:aws:s3:::${RawBucketName}"
               - Effect: "Allow"
                 Action: "logs:*"
                 Resource: "arn:aws:logs:*:*:*"
@@ -224,6 +213,17 @@ Resources:
             Principal:
               AWS: "*"
               Service: apigateway.amazonaws.com
+          - Action: "s3:Get*"
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - !GetAtt RawBucket.Arn
+                  - "/*"
+            Principal:
+              AWS: "*"
+              Service: lambda.amazonaws.com
   
   CreateThumbnailFunctionSNSInvokePermission:
     Type: AWS::Lambda::Permission
