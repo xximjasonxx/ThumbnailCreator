@@ -48,17 +48,6 @@ Resources:
             Principal:
               AWS: "*"
               Service: lambda.amazonaws.com
-          - Action: "s3:Get*"
-            Effect: Allow
-            Resource:
-              Fn::Join:
-                - ""
-                -
-                  - !GetAtt Thumbnail.Arn
-                  - "/*"
-            Principal:
-              AWS: "*"
-              Service: lambda.amazonaws.com
 
   ImageTable:
     Type: AWS::DynamoDB::Table
@@ -93,10 +82,7 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: "s3:Put*"
-                Resource: "*"
-              - Effect: "Allow"
-                Action: "s3:Get*"
-                Resource: "*"
+                Resource: !GetAtt ThumbnailBucket.Arn
               - Effect: "Allow"
                 Action: "logs:*"
                 Resource: "arn:aws:logs:*:*:*"
