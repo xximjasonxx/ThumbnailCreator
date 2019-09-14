@@ -32,7 +32,7 @@ Resources:
       BucketName: !Ref ThumbnailBucketName
 
   ThumbnailBucketPolicy:
-    Type: AWS::S3::BucketPolciy
+    Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref ThumbnailBucket
       PolicyDocument:
