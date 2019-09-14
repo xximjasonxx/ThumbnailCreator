@@ -54,7 +54,7 @@ Resources:
               Fn::Join:
                 - ""
                 -
-                  - !GetAtt ThumbnailBucket.Arn
+                  - !GetAtt RawBucket.Arn
                   - "/*"
             Principal:
               AWS: "*"
@@ -96,7 +96,7 @@ Resources:
                 Resource: !GetAtt ThumbnailBucket.Arn
               - Effect: "Allow"
                 Action: "s3:Get*"
-                Resource: !GetAtt ThumbnailBucket.Arn
+                Resource: !GetAtt RawBucket.Arn
               - Effect: "Allow"
                 Action: "logs:*"
                 Resource: "arn:aws:logs:*:*:*"
