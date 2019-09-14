@@ -177,6 +177,24 @@ Resources:
         TopicConfigurations:
           - Event: "s3:ObjectCreated:*"
             Topic: !Ref ImageUploadTopic
+
+  RawBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref RawBucket
+      PolicyDocument:
+        Statement:
+          - Action: "s3:Put*"
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - !GetAtt RawBucket.Arn
+                  - "/*"
+            Principal:
+              AWS: "*"
+              Service: apigateway.amazonaws.com
   
   CreateThumbnailFunctionSNSInvokePermission:
     Type: AWS::Lambda::Permission
